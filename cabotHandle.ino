@@ -29,7 +29,6 @@
 
 const int BAUDRATE = 115200;
 const int RX_BUFF_LEN = 128;
-const int SENSOR_UPDATE_DURATION_US = 10000;
 unsigned int rx_data_count = 0;
 static char temp_buffer[RX_BUFF_LEN];
 
