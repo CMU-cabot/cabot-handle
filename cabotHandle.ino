@@ -94,11 +94,8 @@ void sendSensorData() {
 
 void task_readCmdOnDisable() {
   if (task_readCmd.timedOut()) {
-    rx_data_count = 0;
-    memset(temp_buffer, '\0', sizeof(temp_buffer));
-    rx_buffer.clearBuffer();
+    task_readCmd.enable();
   }
-  task_readCmd.enable();
 }
 
 void task_updateSensorDataOnDisable() {
