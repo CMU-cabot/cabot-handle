@@ -24,7 +24,7 @@
 #define HANDLETOUCH_HPP_
 
 #include <Arduino.h>
-#include "Cap1203.h"
+#include "Cap1203.hpp"
 
 class HandleTouch {
   public:
