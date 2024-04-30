@@ -54,9 +54,7 @@ void HandleCommand::init() {
                      button_t_pin,
                      button_c_pin);
   handleTouch.init();
-  handleVibrator.init(vibrator_r_pin,
-                      vibrator_c_pin,
-                      vibrator_l_pin);
+  handleVibrator.init();
   is_send_start_ = true;
 }
 
@@ -71,9 +69,9 @@ void HandleCommand::sendSensorData() {
              handleTouch.is_touch,
              handleTouch.touch_raw,
              handleTouch.touch_threshold,
-             handleVibrator.vib_power_r,
-             handleVibrator.vib_power_c,
-             handleVibrator.vib_power_l,
+             handleVibrator.power,
+             handleVibrator.power,
+             handleVibrator.freq,
              handleButtons.is_push_t,
              handleButtons.is_push_u,
              handleButtons.is_push_l,
@@ -91,6 +89,15 @@ void HandleCommand::parseCommand(char *command) {
     sendStop();
   } else if (strncmp(command, "reset", 5) == 0) {
     softReset();
+  } else if (strncmp(command, "FREQ,", 5) == 0) {
+    char *token;
+    uint16_t freq;
+    token = strtok(command, delimiter);
+    token = strtok(NULL, delimiter);
+    if (token != nullptr) {
+      freq = strtol(token, NULL, 10);
+      handleVibrator.setVibratorFreq(freq);
+    }
   } else if (strncmp(command, "MOT,", 4) == 0) {
     char *token;
     uint8_t power;
@@ -99,7 +106,7 @@ void HandleCommand::parseCommand(char *command) {
       token = strtok(NULL, delimiter);
       if (token != nullptr) {
         power = strtol(token, NULL, 10);
-        handleVibrator.setVibratorState(i, power);
+        handleVibrator.setVibratorPower(power);
       }
     }
   } else if (strncmp(command, "R,", 2) == 0) {
@@ -109,7 +116,7 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(1, power);
+      handleVibrator.setVibratorPower(power);
     }
   } else if (strncmp(command, "C,", 2) == 0) {
     char *token;
@@ -118,7 +125,7 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(2, power);
+      handleVibrator.setVibratorPower(power);
     }
   } else if (strncmp(command, "L,", 2) == 0) {
     char *token;
@@ -127,7 +134,7 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(3, power);
+      handleVibrator.setVibratorPower(power);
     }
   } else if (strncmp(command, "THRESH,", 7) == 0) {
     char *token;

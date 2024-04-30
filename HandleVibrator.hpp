@@ -24,20 +24,21 @@
 #define HANDLEVIBRATOR_HPP_
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <Haptic_Driver.h>
 
 class HandleVibrator {
+  private:
+    bool is_ready_;
+
   public:
     HandleVibrator();
-    void init(uint8_t pin_r, uint8_t pin_c, uint8_t pin_l);
-    void setVibratorState(uint8_t ch, uint8_t power);
-    void stopAllVibrator();
+    void init();
+    void setVibratorPower(uint8_t power);
+    void setVibratorFreq(uint16_t freq);
     uint8_t powerToCount(uint8_t power);
-    uint8_t vibrator_pin_r;
-    uint8_t vibrator_pin_c;
-    uint8_t vibrator_pin_l;
-    uint8_t vib_power_r;
-    uint8_t vib_power_c;
-    uint8_t vib_power_l;
+    uint8_t power;
+    uint16_t freq;
 };
 
 #endif  // HANDLEVIBRATOR_HPP_
