@@ -40,18 +40,19 @@ void HandleVibrator::init(uint8_t pin_r, uint8_t pin_c, uint8_t pin_l) {
 void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
   if (power > 100) {
     stopAllVibrator();
-  }
-  if (ch == 1) {
-    vib_power_r = power;
-    analogWrite(vibrator_pin_r, powerToCount(vib_power_r));
-  } else if (ch == 2) {
-    vib_power_c = power;
-    analogWrite(vibrator_pin_c, powerToCount(vib_power_c));
-  } else if (ch == 3) {
-    vib_power_l = power;
-    analogWrite(vibrator_pin_l, powerToCount(vib_power_l));
   } else {
-    stopAllVibrator();
+    if (ch == 1) {
+      vib_power_r = power;
+      analogWrite(vibrator_pin_r, powerToCount(vib_power_r));
+    } else if (ch == 2) {
+      vib_power_c = power;
+      analogWrite(vibrator_pin_c, powerToCount(vib_power_c));
+    } else if (ch == 3) {
+      vib_power_l = power;
+      analogWrite(vibrator_pin_l, powerToCount(vib_power_l));
+    } else {
+      stopAllVibrator();
+    }
   }
 }
 
