@@ -21,6 +21,7 @@
  *******************************************************************************/
 
 #define _TASK_TIMEOUT
+#define _TASK_THREAD_SAFE
 
 #include <Arduino.h>
 #include <TaskScheduler.h>  // https://github.com/arkhipenko/TaskScheduler.git
@@ -35,20 +36,20 @@ static char temp_buffer[RX_BUFF_LEN];
 Scheduler ts;
 
 void readCommand();
-void updateSensorData();
 void sendSensorData();
 void task_readCmdOnDisable();
-void task_updateSensorDataOnDisable();
 
+Task task_sendSensorData(15, TASK_FOREVER, &sendSensorData, &ts, false, NULL, NULL);
 Task task_readCmd(TASK_IMMEDIATE, TASK_FOREVER, &readCommand, &ts, false, NULL, &task_readCmdOnDisable);
-Task task_updateSensorData(10, TASK_ONCE, &updateSensorData, &ts, false, NULL, &task_updateSensorDataOnDisable);
-Task task_sendSensorData(10, TASK_FOREVER, &sendSensorData, &ts, false, NULL, NULL);
 
 SerialQueue rx_buffer = SerialQueue(RX_BUFF_LEN);
 HandleCommand handleCommand;
 
 void readCommand() {
   while (Serial1.available()) {
+    if (task_readCmd.untilTimeout() < 0) {  // The value could be negative if the timeout has already occurred.
+      break;
+    }
     rx_buffer.append(Serial1.read());
   }
 
@@ -82,25 +83,16 @@ void readCommand() {
   }
 }
 
-void updateSensorData() {
-  handleCommand.updateSensorData();
-}
-
 void sendSensorData() {
+  handleCommand.updateSensorData();
   handleCommand.sendSensorData();
-  task_sendSensorData.delay(0);   // delay task for current execution interval (aInterval = 10msec)
+  task_sendSensorData.delay(0);   // delay task for current execution interval (aInterval = 15msec)
 }
 
 void task_readCmdOnDisable() {
   if (task_readCmd.timedOut()) {
     task_readCmd.enable();
   }
-}
-
-void task_updateSensorDataOnDisable() {
-  task_updateSensorData.setInterval(10);
-  task_updateSensorData.setIterations(TASK_ONCE);
-  task_updateSensorData.enable();
 }
 
 void setup() {
