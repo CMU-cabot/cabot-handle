@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  *******************************************************************************/
 
+// #define USE_USB_PORT
+
 #define _TASK_TIMEOUT
 #define _TASK_THREAD_SAFE
 
@@ -46,6 +48,15 @@ SerialQueue rx_buffer = SerialQueue(RX_BUFF_LEN);
 HandleCommand handleCommand;
 
 void readCommand() {
+  #ifdef USE_USB_PORT
+    while (Serial.available()) {
+      if (task_readCmd.untilTimeout() < 0) {  // The value could be negative if the timeout has already occurred.
+        break;
+      }
+      rx_buffer.append(Serial.read());
+    }
+  #else
+  #endif
   while (Serial1.available()) {
     if (task_readCmd.untilTimeout() < 0) {  // The value could be negative if the timeout has already occurred.
       break;
@@ -65,6 +76,10 @@ void readCommand() {
           temp_buffer[rx_data_count++] = '\r';
           temp_buffer[rx_data_count++] = '\n';
           temp_buffer[rx_data_count++] = '\0';
+          #ifdef USE_USB_PORT
+            Serial.write(temp_buffer);
+          #else
+          #endif
           Serial1.write(temp_buffer);
           handleCommand.parseCommand(temp_buffer);
           rx_data_count = 0;
@@ -98,6 +113,10 @@ void task_readCmdOnDisable() {
 void setup() {
   memset(temp_buffer, '\0', sizeof(temp_buffer));
   handleCommand.init();
+  #ifdef USE_USB_PORT
+    Serial.begin(BAUDRATE);
+  #else
+  #endif
   Serial1.begin(BAUDRATE);
   while (!Serial1) {
   }

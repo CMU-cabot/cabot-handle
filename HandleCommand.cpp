@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  *******************************************************************************/
 
+// #define USE_USB_PORT
+
 #define TX_DATA_SIZE 64
 
 #include "HandleCommand.hpp"
@@ -168,6 +170,10 @@ void HandleCommand::parseCommand(char *command) {
 }
 
 void HandleCommand::sendCommand(char *tx_data) {
+  #ifdef USE_USB_PORT
+    Serial.write(tx_data);
+  #else
+  #endif
   Serial1.write(tx_data);
 }
 
