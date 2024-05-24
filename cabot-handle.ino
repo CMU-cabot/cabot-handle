@@ -64,35 +64,33 @@ void readCommand() {
     rx_buffer.append(Serial1.read());
   }
 
-  if (rx_buffer.count() > 0) {
-    char data;
-    while (rx_buffer.count() > 0) {
-      data = rx_buffer.pop();
-      if (data == '\n') {
-        if (rx_data_count >= (RX_BUFF_LEN - 3)) {
-          rx_data_count = 0;
-          rx_buffer.clearBuffer();
-        } else {
-          temp_buffer[rx_data_count++] = '\r';
-          temp_buffer[rx_data_count++] = '\n';
-          temp_buffer[rx_data_count++] = '\0';
-          #ifdef USE_USB_PORT
-            Serial.write(temp_buffer);
-          #else
-          #endif
-          Serial1.write(temp_buffer);
-          handleCommand.parseCommand(temp_buffer);
-          rx_data_count = 0;
-        }
-      } else if (data == '\r') {
-        // nop
+  char data;
+  while (rx_buffer.count() > 0) {
+    data = rx_buffer.pop();
+    if (data == '\n') {
+      if (rx_data_count >= (RX_BUFF_LEN - 3)) {
+        rx_data_count = 0;
+        rx_buffer.clearBuffer();
       } else {
-        if (rx_data_count >= RX_BUFF_LEN) {
-          rx_data_count = 0;
-          rx_buffer.clearBuffer();
-        } else {
-          temp_buffer[rx_data_count++] = data;
-        }
+        temp_buffer[rx_data_count++] = '\r';
+        temp_buffer[rx_data_count++] = '\n';
+        temp_buffer[rx_data_count++] = '\0';
+        #ifdef USE_USB_PORT
+          Serial.write(temp_buffer);
+        #else
+        #endif
+        Serial1.write(temp_buffer);
+        handleCommand.parseCommand(temp_buffer);
+        rx_data_count = 0;
+      }
+    } else if (data == '\r') {
+      // nop
+    } else {
+      if (rx_data_count >= RX_BUFF_LEN) {
+        rx_data_count = 0;
+        rx_buffer.clearBuffer();
+      } else {
+        temp_buffer[rx_data_count++] = data;
       }
     }
   }
