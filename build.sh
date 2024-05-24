@@ -9,11 +9,11 @@ function help() {
     echo ""
     echo "-h         show this help"
     echo "-b         set board (default=arduino:mbed_nano:nano33ble)"
-    echo "-p         set port (default=/dev/ttyACM0)"
+    echo "-p         set port (if port is blank, find Arduino Nano 33 BLE's port from board list)"
 }
 
 : ${ARDUINO_BOARD:="arduino:mbed_nano:nano33ble"}
-: ${ARDUINO_PORT:="/dev/ttyACM0"}
+: ${ARDUINO_PORT:=""}
 
 board=$ARDUINO_BOARD
 port=$ARDUINO_PORT
@@ -33,6 +33,10 @@ while getopts "hb:p:" arg; do
     esac
 done
 shift $((OPTIND-1))
+
+if [ -z $port ]; then
+    port=$(arduino-cli board list | awk '/Arduino Nano 33 BLE/ { print $1 }')
+fi
 
 target=$1
 if [ -z $target ]; then
