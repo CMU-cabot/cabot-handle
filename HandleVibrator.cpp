@@ -45,8 +45,8 @@ void HandleVibrator::init(uint8_t vdd_pin) {
   }
 
   defaultHapticSettings.motorType = LRA_TYPE;
-  defaultHapticSettings.nomVolt = 2.0;          // Nominal Voltage: 2.0V
-  defaultHapticSettings.absVolt = 2.0;          // Absolute Voltage: 2.0V
+  defaultHapticSettings.nomVolt = 1.0;          // Nominal Voltage: 1.0V
+  defaultHapticSettings.absVolt = 1.0;          // Absolute Voltage: 1.0V
   defaultHapticSettings.currMax = 100;          // Maximum Current: 100 mA
   defaultHapticSettings.impedance = 8;          // Channel Impedance: 8 Ohms
   defaultHapticSettings.lraFreq = 166;          // LRA Frequency: 166 Hz
