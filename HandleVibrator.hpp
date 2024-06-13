@@ -33,7 +33,7 @@ class HandleVibrator {
 
   public:
     HandleVibrator();
-    void init();
+    void init(uint8_t vdd_pin);
     void setVibratorPower(uint8_t power);
     void setVibratorFreq(uint16_t freq);
     uint8_t powerToCount(uint8_t power);

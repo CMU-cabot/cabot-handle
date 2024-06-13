@@ -28,9 +28,14 @@ hapticSettings defaultHapticSettings;
 HandleVibrator::HandleVibrator() {
 }
 
-void HandleVibrator::init() {
+void HandleVibrator::init(uint8_t vdd_pin) {
   this->power = 0;
   this->freq = 160;
+
+  pinMode(vdd_pin, OUTPUT);
+  digitalWrite(vdd_pin, LOW);
+  delay(100);
+  digitalWrite(vdd_pin, HIGH);
 
   is_ready_ = false;
   while (!is_ready_) {

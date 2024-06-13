@@ -26,9 +26,7 @@
 
 #include "HandleCommand.hpp"
 
-const uint8_t vibrator_c_pin = 2;
-const uint8_t vibrator_l_pin = 3;
-const uint8_t vibrator_r_pin = 4;
+const uint8_t vibrator_vdd_pin = 2;
 const uint8_t button_l_pin   = 5;
 const uint8_t button_r_pin   = 6;
 const uint8_t button_u_pin   = 7;
@@ -56,7 +54,7 @@ void HandleCommand::init() {
                      button_t_pin,
                      button_c_pin);
   handleTouch.init();
-  handleVibrator.init();
+  handleVibrator.init(vibrator_vdd_pin);
   is_send_start_ = true;
 }
 
