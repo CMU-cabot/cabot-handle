@@ -25,16 +25,16 @@
 HandleVibrator::HandleVibrator() {
 }
 
-void HandleVibrator::init(uint8_t pin_r, uint8_t pin_c, uint8_t pin_l) {
-  vibrator_pin_r = pin_r;
-  vibrator_pin_c = pin_c;
-  vibrator_pin_l = pin_l;
-  pinMode(vibrator_pin_r, OUTPUT);
-  pinMode(vibrator_pin_c, OUTPUT);
-  pinMode(vibrator_pin_l, OUTPUT);
-  analogWrite(vibrator_pin_r, 0);
-  analogWrite(vibrator_pin_c, 0);
-  analogWrite(vibrator_pin_l, 0);
+void HandleVibrator::init(uint8_t right_pin, uint8_t center_pin, uint8_t left_pin) {
+  right_pin_ = right_pin;
+  center_pin_ = center_pin;
+  left_pin_ = left_pin;
+  pinMode(right_pin_, OUTPUT);
+  pinMode(center_pin_, OUTPUT);
+  pinMode(left_pin_, OUTPUT);
+  analogWrite(right_pin_, 0);
+  analogWrite(center_pin_, 0);
+  analogWrite(left_pin_, 0);
 }
 
 void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
@@ -42,14 +42,14 @@ void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
     stopAllVibrator();
   } else {
     if (ch == 1) {
-      vib_power_r = power;
-      analogWrite(vibrator_pin_r, powerToCount(vib_power_r));
+      power_right = power;
+      analogWrite(right_pin_, powerToCount(power_right));
     } else if (ch == 2) {
-      vib_power_c = power;
-      analogWrite(vibrator_pin_c, powerToCount(vib_power_c));
+      power_center = power;
+      analogWrite(center_pin_, powerToCount(power_center));
     } else if (ch == 3) {
-      vib_power_l = power;
-      analogWrite(vibrator_pin_l, powerToCount(vib_power_l));
+      power_left = power;
+      analogWrite(left_pin_, powerToCount(power_left));
     } else {
       stopAllVibrator();
     }
@@ -57,12 +57,12 @@ void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
 }
 
 void HandleVibrator::stopAllVibrator() {
-  vib_power_r = 0;
-  vib_power_c = 0;
-  vib_power_l = 0;
-  analogWrite(vibrator_pin_r, vib_power_r);
-  analogWrite(vibrator_pin_c, vib_power_c);
-  analogWrite(vibrator_pin_l, vib_power_l);
+  power_right = 0;
+  power_center = 0;
+  power_left = 0;
+  analogWrite(right_pin_, power_right);
+  analogWrite(center_pin_, power_center);
+  analogWrite(left_pin_, power_left);
 }
 
 uint8_t HandleVibrator::powerToCount(uint8_t power) {

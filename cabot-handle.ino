@@ -35,6 +35,16 @@ const int RX_BUFF_LEN = 128;
 unsigned int rx_data_count = 0;
 static char temp_buffer[RX_BUFF_LEN];
 
+const uint8_t vib_center_pin = 2;
+const uint8_t vib_left_pin   = 3;
+const uint8_t vib_right_pin  = 4;
+const uint8_t btn_left_pin   = 5;
+const uint8_t btn_right_pin  = 6;
+const uint8_t btn_down_pin   = 7;
+const uint8_t btn_up_pin     = 8;
+const uint8_t pwm_servo_pin  = 9;
+const uint8_t btn_center_pin = 10;
+
 Scheduler ts;
 
 void readCommand();
@@ -110,7 +120,9 @@ void task_readCmdOnDisable() {
 
 void setup() {
   memset(temp_buffer, '\0', sizeof(temp_buffer));
-  handleCommand.init();
+  handleCommand.init(vib_right_pin, vib_center_pin, vib_left_pin,
+                     btn_right_pin, btn_left_pin, btn_down_pin, btn_up_pin, btn_center_pin,
+                     pwm_servo_pin);
   #ifdef USE_USB_PORT
     Serial.begin(BAUDRATE);
   #else

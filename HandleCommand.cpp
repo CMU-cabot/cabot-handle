@@ -26,16 +26,6 @@
 
 #include "HandleCommand.hpp"
 
-const uint8_t vibrator_c_pin = 2;
-const uint8_t vibrator_l_pin = 3;
-const uint8_t vibrator_r_pin = 4;
-const uint8_t button_l_pin   = 5;
-const uint8_t button_r_pin   = 6;
-const uint8_t button_u_pin   = 7;
-const uint8_t button_t_pin   = 8;
-const uint8_t pwm_servo_pin  = 9;
-const uint8_t button_c_pin   = 10;
-
 static char tx_data[TX_DATA_SIZE];
 const char delimiter[2] = ",";
 const uint8_t vibrator_num = 3;
@@ -48,17 +38,14 @@ HandleVibrator  handleVibrator;
 HandleCommand::HandleCommand() {
 }
 
-void HandleCommand::init() {
+void HandleCommand::init(
+    uint8_t vib_right_pin, uint8_t vib_center_pin, uint8_t vib_left_pin,
+    uint8_t btn_right_pin, uint8_t btn_left_pin, uint8_t btn_down_pin, uint8_t btn_up_pin, uint8_t btn_center_pin,
+    uint8_t pwm_servo_pin) {
   handleServo.init(pwm_servo_pin);
-  handleButtons.init(button_r_pin,
-                     button_l_pin,
-                     button_u_pin,
-                     button_t_pin,
-                     button_c_pin);
+  handleButtons.init(btn_right_pin, btn_left_pin, btn_down_pin, btn_up_pin, btn_center_pin);
   handleTouch.init();
-  handleVibrator.init(vibrator_r_pin,
-                      vibrator_c_pin,
-                      vibrator_l_pin);
+  handleVibrator.init(vib_right_pin, vib_center_pin, vib_left_pin);
   is_send_start_ = true;
 }
 
@@ -73,14 +60,14 @@ void HandleCommand::sendSensorData() {
              handleTouch.is_touch,
              handleTouch.touch_raw,
              handleTouch.touch_threshold,
-             handleVibrator.vib_power_r,
-             handleVibrator.vib_power_c,
-             handleVibrator.vib_power_l,
-             handleButtons.is_push_t,
-             handleButtons.is_push_u,
-             handleButtons.is_push_l,
-             handleButtons.is_push_r,
-             handleButtons.is_push_c,
+             handleVibrator.power_right,
+             handleVibrator.power_center,
+             handleVibrator.power_left,
+             handleButtons.is_push_up,
+             handleButtons.is_push_down,
+             handleButtons.is_push_left,
+             handleButtons.is_push_right,
+             handleButtons.is_push_center,
              handleServo.servo_pos);
     sendCommand(tx_data);
   }

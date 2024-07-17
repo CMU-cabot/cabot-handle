@@ -38,7 +38,10 @@ class HandleCommand {
 
   public:
     HandleCommand();
-    void init();
+    void init(
+      uint8_t vib_right_pin, uint8_t vib_center_pin, uint8_t vib_left_pin,
+      uint8_t btn_right_pin, uint8_t btn_left_pin, uint8_t btn_down_pin, uint8_t btn_up_pin, uint8_t btn_center_pin,
+      uint8_t pwm_servo_pin);
     void updateSensorData();
     void sendSensorData();
     void parseCommand(char *command);
