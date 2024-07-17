@@ -27,13 +27,14 @@
 
 class HandleVibrator {
   private:
+    bool enable_da7280_;
     uint8_t right_pin_;
     uint8_t center_pin_;
     uint8_t left_pin_;
 
   public:
     HandleVibrator();
-    void init(uint8_t right_pin, uint8_t center_pin, uint8_t left_pin);
+    void init(bool enable_da7280, uint8_t right_pin, uint8_t center_pin, uint8_t left_pin);
     void setVibratorState(uint8_t ch, uint8_t power);
     void stopAllVibrator();
     uint8_t powerToCount(uint8_t power);

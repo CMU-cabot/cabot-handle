@@ -39,13 +39,14 @@ HandleCommand::HandleCommand() {
 }
 
 void HandleCommand::init(
-    uint8_t vib_right_pin, uint8_t vib_center_pin, uint8_t vib_left_pin,
+    bool enable_da7280, uint8_t vib_right_pin, uint8_t vib_center_pin, uint8_t vib_left_pin,
     uint8_t btn_right_pin, uint8_t btn_left_pin, uint8_t btn_down_pin, uint8_t btn_up_pin, uint8_t btn_center_pin,
     uint8_t pwm_servo_pin) {
   handleServo.init(pwm_servo_pin);
   handleButtons.init(btn_right_pin, btn_left_pin, btn_down_pin, btn_up_pin, btn_center_pin);
   handleTouch.init();
-  handleVibrator.init(vib_right_pin, vib_center_pin, vib_left_pin);
+  handleVibrator.init(enable_da7280, vib_right_pin, vib_center_pin, vib_left_pin);
+  enable_da7280_ = enable_da7280;
   is_send_start_ = true;
 }
 

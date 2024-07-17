@@ -25,7 +25,8 @@
 HandleVibrator::HandleVibrator() {
 }
 
-void HandleVibrator::init(uint8_t right_pin, uint8_t center_pin, uint8_t left_pin) {
+void HandleVibrator::init(bool enable_da7280, uint8_t right_pin, uint8_t center_pin, uint8_t left_pin) {
+  enable_da7280_ = enable_da7280;
   right_pin_ = right_pin;
   center_pin_ = center_pin;
   left_pin_ = left_pin;
