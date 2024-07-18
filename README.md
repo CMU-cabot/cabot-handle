@@ -22,9 +22,12 @@
   host $ docker-compose run arduino
 docker $ ./build.sh all                # build and upload (with -b arduino:mbed_nano:nano33ble -p /dev/ttyACM0)
                                        # you can set board by ARDUINO_BOARD, and port by ARDUINO_PORT environment variables
+                                       # when you use LRA (Linear Resonant Actuator), "--lra" option should be specified
+                                       #   ex.) ./build.sh --lra all
 
 or use arduino-cli
-docker $ arduino-cli compile -b arduino:mbed_nano:nano33ble .
+docker $ arduino-cli compile -b arduino:mbed_nano:nano33ble .                 # when you use LRA, "buiild.extra_flags=-DUSE_LINEAR_RESONANT_ACTUATOR" should be defined
+                                                                              #   ex.) arduino-cli compile -b arduino:mbed_nano:nano33ble --build-property build.extra_flags=-DUSE_LINEAR_RESONANT_ACTUATOR .
 docker $ arduino-cli upload -b arduino:mbed_nano:nano33ble -p /dev/ttyACM0 .
 ```
 - change `-b <board type> -p <port>` for your environment
