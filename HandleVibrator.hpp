@@ -24,23 +24,30 @@
 #define HANDLEVIBRATOR_HPP_
 
 #include <Arduino.h>
+#include <Wire.h>
+#include <Haptic_Driver.h>
 
 class HandleVibrator {
   private:
     bool enable_da7280_;
+    bool is_da7280_ready_;
     uint8_t right_pin_;
     uint8_t center_pin_;
     uint8_t left_pin_;
+    void init_da7280_(uint8_t vdd_pin);
 
   public:
     HandleVibrator();
     void init(bool enable_da7280, uint8_t right_pin, uint8_t center_pin, uint8_t left_pin);
-    void setVibratorState(uint8_t ch, uint8_t power);
+    void setVibratorPower(uint8_t ch, uint8_t power);
+    void setVibratorPower(uint8_t power);
+    void setVibratorFreq(uint16_t freq);
     void stopAllVibrator();
     uint8_t powerToCount(uint8_t power);
     uint8_t power_right;
     uint8_t power_center;
     uint8_t power_left;
+    uint16_t freq;
 };
 
 #endif  // HANDLEVIBRATOR_HPP_

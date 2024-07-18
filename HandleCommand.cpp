@@ -57,19 +57,35 @@ void HandleCommand::updateSensorData() {
 
 void HandleCommand::sendSensorData() {
   if (is_send_start_) {
-    snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-             handleTouch.is_touch,
-             handleTouch.touch_raw,
-             handleTouch.touch_threshold,
-             handleVibrator.power_right,
-             handleVibrator.power_center,
-             handleVibrator.power_left,
-             handleButtons.is_push_up,
-             handleButtons.is_push_down,
-             handleButtons.is_push_left,
-             handleButtons.is_push_right,
-             handleButtons.is_push_center,
-             handleServo.servo_pos);
+    if (enable_da7280_) {
+      snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+               handleTouch.is_touch,
+               handleTouch.touch_raw,
+               handleTouch.touch_threshold,
+               handleVibrator.power_center,
+               handleVibrator.power_center,
+               handleVibrator.freq,
+               handleButtons.is_push_up,
+               handleButtons.is_push_down,
+               handleButtons.is_push_left,
+               handleButtons.is_push_right,
+               handleButtons.is_push_center,
+               handleServo.servo_pos);
+    } else {
+      snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+               handleTouch.is_touch,
+               handleTouch.touch_raw,
+               handleTouch.touch_threshold,
+               handleVibrator.power_right,
+               handleVibrator.power_center,
+               handleVibrator.power_left,
+               handleButtons.is_push_up,
+               handleButtons.is_push_down,
+               handleButtons.is_push_left,
+               handleButtons.is_push_right,
+               handleButtons.is_push_center,
+               handleServo.servo_pos);
+    }
     sendCommand(tx_data);
   }
 }
@@ -81,6 +97,15 @@ void HandleCommand::parseCommand(char *command) {
     sendStop();
   } else if (strncmp(command, "reset", 5) == 0) {
     softReset();
+  } else if ((strncmp(command, "FREQ,", 5) == 0) && enable_da7280_) {
+    char *token;
+    uint16_t freq;
+    token = strtok(command, delimiter);
+    token = strtok(NULL, delimiter);
+    if (token != nullptr) {
+      freq = strtol(token, NULL, 10);
+      handleVibrator.setVibratorFreq(freq);
+    }
   } else if (strncmp(command, "MOT,", 4) == 0) {
     char *token;
     uint8_t power;
@@ -89,7 +114,11 @@ void HandleCommand::parseCommand(char *command) {
       token = strtok(NULL, delimiter);
       if (token != nullptr) {
         power = strtol(token, NULL, 10);
-        handleVibrator.setVibratorState(i, power);
+        if (enable_da7280_) {
+          handleVibrator.setVibratorPower(power);
+        } else {
+          handleVibrator.setVibratorPower(i, power);
+        }
       }
     }
   } else if (strncmp(command, "R,", 2) == 0) {
@@ -99,7 +128,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(1, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(1, power);
+      }
     }
   } else if (strncmp(command, "C,", 2) == 0) {
     char *token;
@@ -108,7 +141,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(2, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(2, power);
+      }
     }
   } else if (strncmp(command, "L,", 2) == 0) {
     char *token;
@@ -117,7 +154,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(3, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(3, power);
+      }
     }
   } else if (strncmp(command, "THRESH,", 7) == 0) {
     char *token;

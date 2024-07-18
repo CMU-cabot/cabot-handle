@@ -22,6 +22,9 @@
 
 #include "HandleVibrator.hpp"
 
+Haptic_Driver hapticDriver;
+hapticSettings defaultHapticSettings;
+
 HandleVibrator::HandleVibrator() {
 }
 
@@ -30,15 +33,55 @@ void HandleVibrator::init(bool enable_da7280, uint8_t right_pin, uint8_t center_
   right_pin_ = right_pin;
   center_pin_ = center_pin;
   left_pin_ = left_pin;
-  pinMode(right_pin_, OUTPUT);
-  pinMode(center_pin_, OUTPUT);
-  pinMode(left_pin_, OUTPUT);
-  analogWrite(right_pin_, 0);
-  analogWrite(center_pin_, 0);
-  analogWrite(left_pin_, 0);
+  if (enable_da7280_) {
+    init_da7280_(center_pin_);
+  } else {
+    pinMode(right_pin_, OUTPUT);
+    pinMode(center_pin_, OUTPUT);
+    pinMode(left_pin_, OUTPUT);
+    analogWrite(right_pin_, 0);
+    analogWrite(center_pin_, 0);
+    analogWrite(left_pin_, 0);
+  }
 }
 
-void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
+void HandleVibrator::init_da7280_(uint8_t vdd_pin) {
+  power_center = 0;
+  freq = 160;
+
+  pinMode(vdd_pin, OUTPUT);
+  digitalWrite(vdd_pin, LOW);
+  delay(100);
+  digitalWrite(vdd_pin, HIGH);
+
+  is_da7280_ready_ = false;
+  while (!is_da7280_ready_) {
+    Wire.begin();
+    is_da7280_ready_ = hapticDriver.begin(Wire);
+    delay(100);
+  }
+
+  defaultHapticSettings.motorType = LRA_TYPE;
+  defaultHapticSettings.nomVolt = 1.0;          // Nominal Voltage: 1.0V
+  defaultHapticSettings.absVolt = 1.0;          // Absolute Voltage: 1.0V
+  defaultHapticSettings.currMax = 100;          // Maximum Current: 100 mA
+  defaultHapticSettings.impedance = 8;          // Channel Impedance: 8 Ohms
+  defaultHapticSettings.lraFreq = 166;          // LRA Frequency: 166 Hz
+  while (!hapticDriver.setMotor(defaultHapticSettings)) {
+    delay(100);
+  }
+
+  hapticDriver.setOperationMode(DRO_MODE);
+  hapticDriver.enableEmbeddedOperation(false);
+  hapticDriver.enableFreqTrack(false);
+  hapticDriver.enableAcceleration(false);
+  hapticDriver.enableRapidStop(false);
+  hapticDriver.enableV2iFactorFreeze(true);
+  hapticDriver.enableDoubleRange(false);
+  hapticDriver.setActuatorLRAfreq(160);
+}
+
+void HandleVibrator::setVibratorPower(uint8_t ch, uint8_t power) {
   if (power > 100) {
     stopAllVibrator();
   } else {
@@ -57,6 +100,27 @@ void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
   }
 }
 
+void HandleVibrator::setVibratorPower(uint8_t power) {
+  if (power > 100) {
+    power_center = 0;
+    hapticDriver.setVibratePower(0);
+  } else {
+    power_center = power;
+    hapticDriver.setVibratePower(powerToCount(power));
+  }
+}
+
+void HandleVibrator::setVibratorFreq(uint16_t freq) {
+  if (freq < 50) {
+    this->freq = 50;
+  } else if (freq > 1000) {
+    this->freq = 1000;
+  } else {
+    this->freq = freq;
+    hapticDriver.setActuatorLRAfreq((float)freq);
+  }
+}
+
 void HandleVibrator::stopAllVibrator() {
   power_right = 0;
   power_center = 0;
@@ -67,5 +131,9 @@ void HandleVibrator::stopAllVibrator() {
 }
 
 uint8_t HandleVibrator::powerToCount(uint8_t power) {
-  return map(power, 0, 100, 0, 255);
+  if (enable_da7280_) {
+    return map(power, 0, 100, 0, 30);
+  } else {
+    return map(power, 0, 100, 0, 255);
+  }
 }
