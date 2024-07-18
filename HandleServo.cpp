@@ -37,11 +37,11 @@ HandleServo::HandleServo() {
 }
 
 void HandleServo::init(uint8_t servo_pin) {
-  pwm_servo_pin = servo_pin;
+  pwm_servo_pin_ = servo_pin;
   servo_pos = 0;
-  pinMode(pwm_servo_pin, OUTPUT);
-  digitalWrite(pwm_servo_pin, LOW);
-  setPWM(pwm, pwm_servo_pin, PWM_FREQ, 7.5);  // set neutral position
+  pinMode(pwm_servo_pin_, OUTPUT);
+  digitalWrite(pwm_servo_pin_, LOW);
+  setPWM(pwm, pwm_servo_pin_, PWM_FREQ, 7.5);  // set neutral position
 }
 
 void HandleServo::setServoPosition(int16_t pos) {
@@ -54,12 +54,12 @@ void HandleServo::setServoPosition(int16_t pos) {
   }
   uint16_t pulse_us = degreeToPulse(servo_pos);
   float duty = pulseToDuty(pulse_us);
-  setPWM(pwm, pwm_servo_pin, PWM_FREQ, duty);
+  setPWM(pwm, pwm_servo_pin_, PWM_FREQ, duty);
 }
 
 void HandleServo::setServoFree() {
   float duty = pulseToDuty(PULSE_WIDTH_FREE_US);
-  setPWM(pwm, pwm_servo_pin, PWM_FREQ, duty);
+  setPWM(pwm, pwm_servo_pin_, PWM_FREQ, duty);
 }
 
 uint16_t HandleServo::degreeToPulse(int16_t degree) {

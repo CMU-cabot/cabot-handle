@@ -26,6 +26,9 @@
 #include <Arduino.h>
 
 class HandleServo {
+  private:
+    uint8_t pwm_servo_pin_;
+
   public:
     HandleServo();
     void init(uint8_t servo_pin);
@@ -34,7 +37,6 @@ class HandleServo {
     uint16_t degreeToPulse(int16_t degree);
     float pulseToDuty(uint16_t pulse);
     int16_t servo_pos;
-    uint8_t pwm_servo_pin;
 };
 
 #endif  // HANDLESERVO_HPP_
