@@ -64,7 +64,7 @@ void HandleCommand::sendSensorData() {
                handleTouch.touch_threshold,
                handleVibrator.power_center,
                handleVibrator.power_center,
-               handleVibrator.freq,
+               handleVibrator.power_center,
                handleButtons.is_push_up,
                handleButtons.is_push_down,
                handleButtons.is_push_left,
