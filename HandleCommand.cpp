@@ -20,19 +20,11 @@
  * THE SOFTWARE.
  *******************************************************************************/
 
+// #define USE_USB_PORT
+
 #define TX_DATA_SIZE 64
 
 #include "HandleCommand.hpp"
-
-const uint8_t vibrator_c_pin = 2;
-const uint8_t vibrator_l_pin = 3;
-const uint8_t vibrator_r_pin = 4;
-const uint8_t button_l_pin   = 5;
-const uint8_t button_r_pin   = 6;
-const uint8_t button_u_pin   = 7;
-const uint8_t button_t_pin   = 8;
-const uint8_t pwm_servo_pin  = 9;
-const uint8_t button_c_pin   = 10;
 
 static char tx_data[TX_DATA_SIZE];
 const char delimiter[2] = ",";
@@ -46,17 +38,15 @@ HandleVibrator  handleVibrator;
 HandleCommand::HandleCommand() {
 }
 
-void HandleCommand::init() {
+void HandleCommand::init(
+    bool enable_da7280, uint8_t vib_right_pin, uint8_t vib_center_pin, uint8_t vib_left_pin,
+    uint8_t btn_right_pin, uint8_t btn_left_pin, uint8_t btn_down_pin, uint8_t btn_up_pin, uint8_t btn_center_pin,
+    uint8_t pwm_servo_pin) {
   handleServo.init(pwm_servo_pin);
-  handleButtons.init(button_r_pin,
-                     button_l_pin,
-                     button_u_pin,
-                     button_t_pin,
-                     button_c_pin);
+  handleButtons.init(btn_right_pin, btn_left_pin, btn_down_pin, btn_up_pin, btn_center_pin);
   handleTouch.init();
-  handleVibrator.init(vibrator_r_pin,
-                      vibrator_c_pin,
-                      vibrator_l_pin);
+  handleVibrator.init(enable_da7280, vib_right_pin, vib_center_pin, vib_left_pin);
+  enable_da7280_ = enable_da7280;
   is_send_start_ = true;
 }
 
@@ -67,19 +57,35 @@ void HandleCommand::updateSensorData() {
 
 void HandleCommand::sendSensorData() {
   if (is_send_start_) {
-    snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-             handleTouch.is_touch,
-             handleTouch.touch_raw,
-             handleTouch.touch_threshold,
-             handleVibrator.vib_power_r,
-             handleVibrator.vib_power_c,
-             handleVibrator.vib_power_l,
-             handleButtons.is_push_t,
-             handleButtons.is_push_u,
-             handleButtons.is_push_l,
-             handleButtons.is_push_r,
-             handleButtons.is_push_c,
-             handleServo.servo_pos);
+    if (enable_da7280_) {
+      snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+               handleTouch.is_touch,
+               handleTouch.touch_raw,
+               handleTouch.touch_threshold,
+               handleVibrator.power_center,
+               handleVibrator.power_center,
+               handleVibrator.power_center,
+               handleButtons.is_push_up,
+               handleButtons.is_push_down,
+               handleButtons.is_push_left,
+               handleButtons.is_push_right,
+               handleButtons.is_push_center,
+               handleServo.servo_pos);
+    } else {
+      snprintf(tx_data, TX_DATA_SIZE, "DAT,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+               handleTouch.is_touch,
+               handleTouch.touch_raw,
+               handleTouch.touch_threshold,
+               handleVibrator.power_right,
+               handleVibrator.power_center,
+               handleVibrator.power_left,
+               handleButtons.is_push_up,
+               handleButtons.is_push_down,
+               handleButtons.is_push_left,
+               handleButtons.is_push_right,
+               handleButtons.is_push_center,
+               handleServo.servo_pos);
+    }
     sendCommand(tx_data);
   }
 }
@@ -91,6 +97,15 @@ void HandleCommand::parseCommand(char *command) {
     sendStop();
   } else if (strncmp(command, "reset", 5) == 0) {
     softReset();
+  } else if ((strncmp(command, "FREQ,", 5) == 0) && enable_da7280_) {
+    char *token;
+    uint16_t freq;
+    token = strtok(command, delimiter);
+    token = strtok(NULL, delimiter);
+    if (token != nullptr) {
+      freq = strtol(token, NULL, 10);
+      handleVibrator.setVibratorFreq(freq);
+    }
   } else if (strncmp(command, "MOT,", 4) == 0) {
     char *token;
     uint8_t power;
@@ -99,7 +114,11 @@ void HandleCommand::parseCommand(char *command) {
       token = strtok(NULL, delimiter);
       if (token != nullptr) {
         power = strtol(token, NULL, 10);
-        handleVibrator.setVibratorState(i, power);
+        if (enable_da7280_) {
+          handleVibrator.setVibratorPower(power);
+        } else {
+          handleVibrator.setVibratorPower(i, power);
+        }
       }
     }
   } else if (strncmp(command, "R,", 2) == 0) {
@@ -109,7 +128,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(1, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(1, power);
+      }
     }
   } else if (strncmp(command, "C,", 2) == 0) {
     char *token;
@@ -118,7 +141,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(2, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(2, power);
+      }
     }
   } else if (strncmp(command, "L,", 2) == 0) {
     char *token;
@@ -127,7 +154,11 @@ void HandleCommand::parseCommand(char *command) {
     token = strtok(NULL, delimiter);
     if (token != nullptr) {
       power = strtol(token, NULL, 10);
-      handleVibrator.setVibratorState(3, power);
+      if (enable_da7280_) {
+        handleVibrator.setVibratorPower(power);
+      } else {
+        handleVibrator.setVibratorPower(3, power);
+      }
     }
   } else if (strncmp(command, "THRESH,", 7) == 0) {
     char *token;
@@ -168,6 +199,10 @@ void HandleCommand::parseCommand(char *command) {
 }
 
 void HandleCommand::sendCommand(char *tx_data) {
+  #ifdef USE_USB_PORT
+    Serial.write(tx_data);
+  #else
+  #endif
   Serial1.write(tx_data);
 }
 

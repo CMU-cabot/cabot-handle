@@ -46,7 +46,7 @@ void SerialQueue::append(const char data) {
 
 char SerialQueue::pop() {
   if (counter == 0) {
-    return char();
+    return '\0';
   }
   char pop_data = buff[head++];
   counter--;

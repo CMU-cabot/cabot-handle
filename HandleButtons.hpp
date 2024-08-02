@@ -26,20 +26,22 @@
 #include <Arduino.h>
 
 class HandleButtons {
+  private:
+    uint8_t right_pin_;
+    uint8_t left_pin_;
+    uint8_t down_pin_;
+    uint8_t up_pin_;
+    uint8_t center_pin_;
+
   public:
     HandleButtons();
-    void init(uint8_t right, uint8_t left, uint8_t under, uint8_t top, uint8_t center);
+    void init(uint8_t right_pin, uint8_t left_pin, uint8_t down_pin, uint8_t up_pin, uint8_t center_pin);
     void update();
-    uint8_t button_r_pin;
-    uint8_t button_l_pin;
-    uint8_t button_u_pin;
-    uint8_t button_t_pin;
-    uint8_t button_c_pin;
-    bool is_push_r;
-    bool is_push_l;
-    bool is_push_u;
-    bool is_push_t;
-    bool is_push_c;
+    bool is_push_right;
+    bool is_push_left;
+    bool is_push_down;
+    bool is_push_up;
+    bool is_push_center;
 };
 
 #endif  // HANDLEBUTTONS_HPP_

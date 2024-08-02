@@ -22,48 +22,118 @@
 
 #include "HandleVibrator.hpp"
 
+Haptic_Driver hapticDriver;
+hapticSettings defaultHapticSettings;
+
 HandleVibrator::HandleVibrator() {
 }
 
-void HandleVibrator::init(uint8_t pin_r, uint8_t pin_c, uint8_t pin_l) {
-  vibrator_pin_r = pin_r;
-  vibrator_pin_c = pin_c;
-  vibrator_pin_l = pin_l;
-  pinMode(vibrator_pin_r, OUTPUT);
-  pinMode(vibrator_pin_c, OUTPUT);
-  pinMode(vibrator_pin_l, OUTPUT);
-  analogWrite(vibrator_pin_r, 0);
-  analogWrite(vibrator_pin_c, 0);
-  analogWrite(vibrator_pin_l, 0);
+void HandleVibrator::init(bool enable_da7280, uint8_t right_pin, uint8_t center_pin, uint8_t left_pin) {
+  enable_da7280_ = enable_da7280;
+  right_pin_ = right_pin;
+  center_pin_ = center_pin;
+  left_pin_ = left_pin;
+  if (enable_da7280_) {
+    init_da7280_(center_pin_);
+  } else {
+    pinMode(right_pin_, OUTPUT);
+    pinMode(center_pin_, OUTPUT);
+    pinMode(left_pin_, OUTPUT);
+    analogWrite(right_pin_, 0);
+    analogWrite(center_pin_, 0);
+    analogWrite(left_pin_, 0);
+  }
 }
 
-void HandleVibrator::setVibratorState(uint8_t ch, uint8_t power) {
+void HandleVibrator::init_da7280_(uint8_t vdd_pin) {
+  power_center = 0;
+  freq = 160;
+
+  pinMode(vdd_pin, OUTPUT);
+  digitalWrite(vdd_pin, LOW);
+  delay(100);
+  digitalWrite(vdd_pin, HIGH);
+
+  is_da7280_ready_ = false;
+  while (!is_da7280_ready_) {
+    Wire.begin();
+    is_da7280_ready_ = hapticDriver.begin(Wire);
+    delay(100);
+  }
+
+  defaultHapticSettings.motorType = LRA_TYPE;
+  defaultHapticSettings.nomVolt = 1.0;          // Nominal Voltage: 1.0V
+  defaultHapticSettings.absVolt = 1.0;          // Absolute Voltage: 1.0V
+  defaultHapticSettings.currMax = 100;          // Maximum Current: 100 mA
+  defaultHapticSettings.impedance = 8;          // Channel Impedance: 8 Ohms
+  defaultHapticSettings.lraFreq = 166;          // LRA Frequency: 166 Hz
+  while (!hapticDriver.setMotor(defaultHapticSettings)) {
+    delay(100);
+  }
+
+  hapticDriver.setOperationMode(DRO_MODE);
+  hapticDriver.enableEmbeddedOperation(false);
+  hapticDriver.enableFreqTrack(false);
+  hapticDriver.enableAcceleration(false);
+  hapticDriver.enableRapidStop(false);
+  hapticDriver.enableV2iFactorFreeze(true);
+  hapticDriver.enableDoubleRange(false);
+  hapticDriver.setActuatorLRAfreq(160);
+}
+
+void HandleVibrator::setVibratorPower(uint8_t ch, uint8_t power) {
   if (power > 100) {
     stopAllVibrator();
-  }
-  if (ch == 1) {
-    vib_power_r = power;
-    analogWrite(vibrator_pin_r, powerToCount(vib_power_r));
-  } else if (ch == 2) {
-    vib_power_c = power;
-    analogWrite(vibrator_pin_c, powerToCount(vib_power_c));
-  } else if (ch == 3) {
-    vib_power_l = power;
-    analogWrite(vibrator_pin_l, powerToCount(vib_power_l));
   } else {
-    stopAllVibrator();
+    if (ch == 1) {
+      power_right = power;
+      analogWrite(right_pin_, powerToCount(power_right));
+    } else if (ch == 2) {
+      power_center = power;
+      analogWrite(center_pin_, powerToCount(power_center));
+    } else if (ch == 3) {
+      power_left = power;
+      analogWrite(left_pin_, powerToCount(power_left));
+    } else {
+      stopAllVibrator();
+    }
+  }
+}
+
+void HandleVibrator::setVibratorPower(uint8_t power) {
+  if (power > 100) {
+    power_center = 0;
+    hapticDriver.setVibratePower(0);
+  } else {
+    power_center = power;
+    hapticDriver.setVibratePower(powerToCount(power));
+  }
+}
+
+void HandleVibrator::setVibratorFreq(uint16_t freq) {
+  if (freq < 50) {
+    this->freq = 50;
+  } else if (freq > 1000) {
+    this->freq = 1000;
+  } else {
+    this->freq = freq;
+    hapticDriver.setActuatorLRAfreq((float)freq);
   }
 }
 
 void HandleVibrator::stopAllVibrator() {
-  vib_power_r = 0;
-  vib_power_c = 0;
-  vib_power_l = 0;
-  analogWrite(vibrator_pin_r, vib_power_r);
-  analogWrite(vibrator_pin_c, vib_power_c);
-  analogWrite(vibrator_pin_l, vib_power_l);
+  power_right = 0;
+  power_center = 0;
+  power_left = 0;
+  analogWrite(right_pin_, power_right);
+  analogWrite(center_pin_, power_center);
+  analogWrite(left_pin_, power_left);
 }
 
 uint8_t HandleVibrator::powerToCount(uint8_t power) {
-  return map(power, 0, 100, 0, 255);
+  if (enable_da7280_) {
+    return map(power, 0, 100, 0, 30);
+  } else {
+    return map(power, 0, 100, 0, 255);
+  }
 }

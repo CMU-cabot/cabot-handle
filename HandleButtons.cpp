@@ -25,28 +25,28 @@
 HandleButtons::HandleButtons() {
 }
 
-void HandleButtons::init(uint8_t right, uint8_t left, uint8_t under, uint8_t top, uint8_t center) {
-  button_r_pin = right;
-  button_l_pin = left;
-  button_u_pin = under;
-  button_t_pin = top;
-  button_c_pin = center;
-  is_push_r = false;
-  is_push_l = false;
-  is_push_u = false;
-  is_push_t = false;
-  is_push_c = false;
-  pinMode(button_r_pin, INPUT_PULLUP);
-  pinMode(button_l_pin, INPUT_PULLUP);
-  pinMode(button_u_pin, INPUT_PULLUP);
-  pinMode(button_t_pin, INPUT_PULLUP);
-  pinMode(button_c_pin, INPUT_PULLUP);
+void HandleButtons::init(uint8_t right_pin, uint8_t left_pin, uint8_t down_pin, uint8_t up_pin, uint8_t center_pin) {
+  right_pin_ = right_pin;
+  left_pin_ = left_pin;
+  down_pin_ = down_pin;
+  up_pin_ = up_pin;
+  center_pin_ = center_pin;
+  is_push_right = false;
+  is_push_left = false;
+  is_push_down = false;
+  is_push_up = false;
+  is_push_center = false;
+  pinMode(right_pin_, INPUT_PULLUP);
+  pinMode(left_pin_, INPUT_PULLUP);
+  pinMode(down_pin_, INPUT_PULLUP);
+  pinMode(up_pin_, INPUT_PULLUP);
+  pinMode(center_pin_, INPUT_PULLUP);
 }
 
 void HandleButtons::update() {
-  is_push_r = !digitalRead(button_r_pin);
-  is_push_l = !digitalRead(button_l_pin);
-  is_push_u = !digitalRead(button_u_pin);
-  is_push_t = !digitalRead(button_t_pin);
-  is_push_c = !digitalRead(button_c_pin);
+  is_push_right = !digitalRead(right_pin_);
+  is_push_left = !digitalRead(left_pin_);
+  is_push_down = !digitalRead(down_pin_);
+  is_push_up = !digitalRead(up_pin_);
+  is_push_center = !digitalRead(center_pin_);
 }

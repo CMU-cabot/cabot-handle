@@ -20,7 +20,10 @@
  * THE SOFTWARE.
  *******************************************************************************/
 
+// #define USE_USB_PORT
+
 #define _TASK_TIMEOUT
+#define _TASK_THREAD_SAFE
 
 #include <Arduino.h>
 #include <TaskScheduler.h>  // https://github.com/arkhipenko/TaskScheduler.git
@@ -32,63 +35,89 @@ const int RX_BUFF_LEN = 128;
 unsigned int rx_data_count = 0;
 static char temp_buffer[RX_BUFF_LEN];
 
+#ifdef USE_LINEAR_RESONANT_ACTUATOR
+  #define ENABLE_DA7280 1
+  const uint8_t vib_center_pin = 2;
+  const uint8_t vib_left_pin   = 0;   // not use
+  const uint8_t vib_right_pin  = 0;   // not use
+#else
+  #define ENABLE_DA7280 0
+  const uint8_t vib_center_pin = 2;
+  const uint8_t vib_left_pin   = 3;
+  const uint8_t vib_right_pin  = 4;
+#endif
+const uint8_t btn_left_pin   = 5;
+const uint8_t btn_right_pin  = 6;
+const uint8_t btn_down_pin   = 7;
+const uint8_t btn_up_pin     = 8;
+const uint8_t pwm_servo_pin  = 9;
+const uint8_t btn_center_pin = 10;
+
 Scheduler ts;
 
 void readCommand();
-void updateSensorData();
 void sendSensorData();
 void task_readCmdOnDisable();
-void task_updateSensorDataOnDisable();
 
+Task task_sendSensorData(15, TASK_FOREVER, &sendSensorData, &ts, false, NULL, NULL);
 Task task_readCmd(TASK_IMMEDIATE, TASK_FOREVER, &readCommand, &ts, false, NULL, &task_readCmdOnDisable);
-Task task_updateSensorData(10, TASK_ONCE, &updateSensorData, &ts, false, NULL, &task_updateSensorDataOnDisable);
-Task task_sendSensorData(10, TASK_FOREVER, &sendSensorData, &ts, false, NULL, NULL);
 
 SerialQueue rx_buffer = SerialQueue(RX_BUFF_LEN);
 HandleCommand handleCommand;
 
 void readCommand() {
+  #ifdef USE_USB_PORT
+    while (Serial.available()) {
+      if (task_readCmd.untilTimeout() < 0) {  // The value could be negative if the timeout has already occurred.
+        break;
+      }
+      rx_buffer.append(Serial.read());
+    }
+  #else
+  #endif
   while (Serial1.available()) {
+    if (task_readCmd.untilTimeout() < 0) {  // The value could be negative if the timeout has already occurred.
+      break;
+    }
     rx_buffer.append(Serial1.read());
   }
 
-  if (rx_buffer.count() > 0) {
-    char data;
-    while (rx_buffer.count() > 0) {
-      data = rx_buffer.pop();
-      if (data == '\n') {
-        if (rx_data_count >= (RX_BUFF_LEN - 3)) {
-          rx_data_count = 0;
-          rx_buffer.clearBuffer();
-        } else {
-          temp_buffer[rx_data_count++] = '\r';
-          temp_buffer[rx_data_count++] = '\n';
-          temp_buffer[rx_data_count++] = '\0';
-          Serial1.write(temp_buffer);
-          handleCommand.parseCommand(temp_buffer);
-          rx_data_count = 0;
-        }
-      } else if (data == '\r') {
-        // nop
+  char data;
+  while (rx_buffer.count() > 0) {
+    data = rx_buffer.pop();
+    if (data == '\n') {
+      if (rx_data_count >= (RX_BUFF_LEN - 3)) {
+        rx_data_count = 0;
+        rx_buffer.clearBuffer();
       } else {
-        if (rx_data_count >= RX_BUFF_LEN) {
-          rx_data_count = 0;
-          rx_buffer.clearBuffer();
-        } else {
-          temp_buffer[rx_data_count++] = data;
-        }
+        temp_buffer[rx_data_count++] = '\r';
+        temp_buffer[rx_data_count++] = '\n';
+        temp_buffer[rx_data_count++] = '\0';
+        #ifdef USE_USB_PORT
+          Serial.write(temp_buffer);
+        #else
+        #endif
+        Serial1.write(temp_buffer);
+        handleCommand.parseCommand(temp_buffer);
+        rx_data_count = 0;
+      }
+    } else if (data == '\r') {
+      // nop
+    } else {
+      if (rx_data_count >= RX_BUFF_LEN) {
+        rx_data_count = 0;
+        rx_buffer.clearBuffer();
+      } else {
+        temp_buffer[rx_data_count++] = data;
       }
     }
   }
 }
 
-void updateSensorData() {
-  handleCommand.updateSensorData();
-}
-
 void sendSensorData() {
+  handleCommand.updateSensorData();
   handleCommand.sendSensorData();
-  task_sendSensorData.delay(0);   // delay task for current execution interval (aInterval = 10msec)
+  task_sendSensorData.delay(0);   // delay task for current execution interval (aInterval = 15msec)
 }
 
 void task_readCmdOnDisable() {
@@ -97,15 +126,15 @@ void task_readCmdOnDisable() {
   }
 }
 
-void task_updateSensorDataOnDisable() {
-  task_updateSensorData.setInterval(10);
-  task_updateSensorData.setIterations(TASK_ONCE);
-  task_updateSensorData.enable();
-}
-
 void setup() {
   memset(temp_buffer, '\0', sizeof(temp_buffer));
-  handleCommand.init();
+  handleCommand.init(ENABLE_DA7280, vib_right_pin, vib_center_pin, vib_left_pin,
+                     btn_right_pin, btn_left_pin, btn_down_pin, btn_up_pin, btn_center_pin,
+                     pwm_servo_pin);
+  #ifdef USE_USB_PORT
+    Serial.begin(BAUDRATE);
+  #else
+  #endif
   Serial1.begin(BAUDRATE);
   while (!Serial1) {
   }
